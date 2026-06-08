@@ -211,7 +211,7 @@ TIME_RESOLUTION_ORDER = [
     "Not reported",
 ]
 
-HORIZON_BAND_ORDER = ["<=2 weeks", "2-4 weeks", ">4 weeks", "Not reported"]
+HORIZON_BAND_ORDER = ["1 week or less", "1-4 weeks", "4 weeks+", "Not reported"]
 
 METHOD_FAMILY_ORDER = [
     "GNN",
@@ -269,17 +269,21 @@ LIST_UNIT_RE = re.compile(r"((?:\d+(?:\.\d+)?\s*,\s*)+\d+(?:\.\d+)?)\s*(day|days
 RANGE_UNIT_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(?:-|to)\s*(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months|year|years|biweekly|biweek)")
 SINGLE_UNIT_RE = re.compile(r"(\d+(?:\.\d+)?)\s*(day|days|week|weeks|month|months|year|years|biweekly|biweek)")
 
-
 def parse_horizon_days(raw):
     if pd.isna(raw):
         return np.nan
+
     text = str(raw).strip().lower().replace("–", "-").replace("—", "-")
+
     if not text:
         return np.nan
+
     if any(k in text for k in ["didn't say", "didnt say", "not explicitly reported", "near future"]):
         return np.nan
+
     if re.search(r"\d+/\d+/\d+", text):
         return np.nan
+
     if text in {"daily", "1 day", "day"}:
         return 1.0
     if text in {"weekly", "one week", "1 week", "week"}:
@@ -288,30 +292,35 @@ def parse_horizon_days(raw):
         return 30.0
     if text in {"annual", "year", "1 year"}:
         return 365.0
+
     if "short term" in text:
         return np.nan
+
     values = []
     for nums, unit in LIST_UNIT_RE.findall(text):
         for n in re.findall(r"\d+(?:\.\d+)?", nums):
             values.append(_unit_to_days(float(n), unit))
+
     for _lo, hi, unit in RANGE_UNIT_RE.findall(text):
         values.append(_unit_to_days(float(hi), unit))
+
     for n, unit in SINGLE_UNIT_RE.findall(text):
         values.append(_unit_to_days(float(n), unit))
+
     if not values:
         return np.nan
-    return max(values)
 
+    return max(values)
 
 def horizon_band(days):
     if pd.isna(days):
         return "Not reported"
-    if days <= 14:
-        return "<=2 weeks"
-    if days <= 28:
-        return "2-4 weeks"
-    return ">4 weeks"
-
+    elif days <= 7:
+        return "1 week"
+    elif days <= 28:
+        return "1–4 weeks"
+    else:
+        return "4+ weeks"
 
 def method_family(raw):
     if pd.isna(raw):
@@ -388,3 +397,24 @@ def code_bucket(series):
         else:
             out.append("Not reported")
     return pd.Series(out)
+
+
+METHOD_FAMILY_KEYWORDS = {
+    "Hybrid / mechanistic": ["hybrid", "sir", "seir", "compartment", "mechanistic", "physics informed", "pinn"],
+    "GNN": ["graph", "gnn", "gcn", "gat", "mpnn"],
+    "Transformer / attention": ["transformer", "attention", "mamba", "state space", "peformer"],
+    "LSTM / GRU / RNN": ["lstm", "gru", "rnn", "recurrent", "seq2seq", "sequence to sequence"],
+    "CNN-based": ["cnn", "convolution", "u-net", "encoder-decoder", "resnet"],
+    "Probabilistic / Bayesian": ["bayesian", "gaussian process", "probabilistic", "inla"],
+    "Classical ML / statistical": ["random forest", "xgboost", "gradient", "svm", "lasso", "glm",
+                                    "regression", "arima", "sarima", "naive bayes", "symbolic"],
+}
+
+def method_families(raw):
+    if pd.isna(raw):
+        return ["Other"]
+    text = str(raw).strip().lower()
+    hits = [fam for fam, kws in METHOD_FAMILY_KEYWORDS.items() if any(k in text for k in kws)]
+    if "GNN" in hits and "transformer" not in text and "mamba" not in text:
+        hits = [h for h in hits if h != "Transformer / attention"]
+    return hits or ["Other"]
