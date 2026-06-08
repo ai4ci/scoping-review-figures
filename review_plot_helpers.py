@@ -211,7 +211,7 @@ TIME_RESOLUTION_ORDER = [
     "Not reported",
 ]
 
-HORIZON_BAND_ORDER = ["<=2 weeks", "2-4 weeks", ">4 weeks", "Not reported"]
+HORIZON_BAND_ORDER = ["1 week or less", "1-4 weeks", "4 weeks+", "Not reported"]
 
 METHOD_FAMILY_ORDER = [
     "GNN",
