@@ -326,7 +326,8 @@ def method_family(raw):
     if pd.isna(raw):
         return "Other"
     text = str(raw).strip().lower()
-    if any(k in text for k in ["hybrid", "sir", "seir", "compartment", "mechanistic", "physics informed", "pinn"]):
+    if any(k in text for k in ["hybrid", "sir", "seir", "compartment", "mechanistic",
+                               "physics informed", "pinn", "ising"]):
         return "Hybrid / mechanistic"
     if any(k in text for k in ["graph", "gnn", "gcn", "gat", "mpnn"]):
         return "GNN"
