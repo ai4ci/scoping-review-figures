@@ -1,5 +1,3 @@
-from __future__ import annotations
-
 import re
 from pathlib import Path
 
@@ -137,22 +135,30 @@ def econ_axes(ax, grid_axis="y"):
 
 
 COUNTRY_PATTERNS = {
-    "USA": ["usa", "united states", "u.s.", "us states", "america"],
-    "UK": ["united kingdom", "england", "wales", "scotland", "britain", "u.k"],
-    "China": ["china", "shenzhen", "shenzen", "guangdong", "guangdon", "shandong", "shandon", "hong kong", "beijing", "shanghai", "wuhan", "hubei"],
-    "Italy": ["italy", "milan", "rome", "reggio emilia", "regio emilia"],
-    "Spain": ["spain", "madrid", "barcelona", "castilla", "catalonia"],
-    "Japan": ["japan", "tokyo"],
-    "India": ["india", "mumbai", "delhi", "bangalore", "chennai"],
-    "Brazil": ["brazil", "sao paulo", "rio de janeiro"],
-    "Germany": ["germany", "berlin", "munich"],
-    "France": ["france", "paris"],
-    "Iran": ["iran", "tehran"],
-    "Turkey": ["turkey", "istanbul"],
-    "Portugal": ["portugal", "lisbon"],
-    "Sri Lanka": ["sri lanka"],
-    "Taiwan": ["taiwan"],
-    "Peru": ["peru"],
+    "USA":          [r"\busa?\b", r"\bu\.?s\.?a?\b", r"united states", r"america"],
+    "UK":           [r"\buk\b", r"\bu\.?k\b", r"england", r"wales", r"scotland", r"britain"],
+    "China":        [r"china", r"shenz?hen", r"guangdong?", r"shandong?", r"hong kong", r"hubei"],
+    "Italy":        [r"italy", r"re?ggio emilia", r"milan", r"rome"],
+    "Spain":        [r"spain", r"madrid", r"castilla", r"barcelona"],
+    "Japan":        [r"japan", r"tokyo"],
+    "India":        [r"india\b", r"mumbai", r"west bengal", r"delhi", r"chennai"],
+    "Brazil":       [r"brazil", r"recife", r"s[ãa]o paulo"],
+    "Germany":      [r"germany", r"berlin", r"munich"],
+    "France":       [r"france", r"paris"],
+    "Türkiye":      [r"t[üu]rkiye", r"turkey", r"istanbul"],
+    "Iran":         [r"iran", r"tehran"],
+    "Portugal":     [r"portugal", r"lisbon"],
+    "Sri Lanka":    [r"sri lanka"],
+    "Taiwan":       [r"taiwan"],
+    "Hungary":      [r"hungary"],         
+    "Austria":      [r"austria"],        
+    "New Zealand":  [r"new zealand"],
+    "Indonesia":    [r"indonesia", r"bandung", r"jakarta"],
+    "Australia":    [r"australia", r"sydney", r"melbourne"],
+    "Netherlands":  [r"netherlands", r"holland"],
+    "Sweden":       [r"sweden", r"uppsala"],
+    "Peru":         [r"peru"],
+    "Sierra Leone": [r"sierra leone", r"west africa"],
     "Sierra Leone": ["sierra leone"],
     "Mexico": ["mexico"],
     "Chile": ["chile"],
@@ -187,18 +193,21 @@ COUNTRY_PATTERNS = {
 }
 
 
+GLOBAL_PATTERNS = [r"\bglobal\b", r"worldwide", r"multiple european", r"\bmulti\b"]
+NULL_VALUES = {"n/a", "nan", "not specified", ""}
+
 def extract_countries(raw):
     if pd.isna(raw):
         return []
-    padded = f" {str(raw).lower()} "
-    hits = []
-    for country, patterns in COUNTRY_PATTERNS.items():
-        if any(p in padded for p in patterns):
-            hits.append(country)
-    if not hits and ("global" in padded or "multi" in padded or "worldwide" in padded or "west africa" in padded):
+    text = str(raw).strip().lower()
+    if text in NULL_VALUES:
+        return []                          # legitimately location-free
+    hits = [c for c, pats in COUNTRY_PATTERNS.items()
+            if any(re.search(p, text) for p in pats)]
+    # global is ADDITIVE, not a fallback — applied unconditionally
+    if any(re.search(p, text) for p in GLOBAL_PATTERNS):
         hits.append("Global / multi-region")
     return hits
-
 
 TIME_RESOLUTION_ORDER = [
     "Daily",
@@ -344,16 +353,6 @@ def method_family(raw):
     return "Other"
 
 
-def explainability_group(raw):
-    if pd.isna(raw):
-        return "No explicit explainability"
-    text = str(raw).strip().lower()
-    if not text or text in {"no", "n"}:
-        return "No explicit explainability"
-    if text.startswith("yes") or "mechanistic" in text or "shap" in text or "gaussian process" in text:
-        return "Claims explainability"
-    return "No explicit explainability"
-
 
 def prepare_time_features(df):
     out = df.copy()
@@ -361,7 +360,6 @@ def prepare_time_features(df):
     out["forecast_horizon_days"] = out["Forecast horizon"].apply(parse_horizon_days)
     out["forecast_horizon_band"] = out["forecast_horizon_days"].apply(horizon_band)
     out["method_family"] = out["Method category"].apply(method_family)
-    out["explainability_group"] = out["Explainable? (Y/N)"].apply(explainability_group)
     return out
 
 
