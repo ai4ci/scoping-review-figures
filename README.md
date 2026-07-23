@@ -1,4 +1,4 @@
-Artificial intelligence (AI) and Machine Learning (ML) for Spatio-temporal Infectious Disease Forecasting: A Scoping Review - Figures
+##Artificial intelligence (AI) and Machine Learning (ML) for Spatio-temporal Infectious Disease Forecasting: A Scoping Review - Figures
 
 This repository contains the code and figure-generation scripts accompanying the manuscript:
 Artificial intelligence (AI) and Machine Learning (ML) for Spatio-temporal Infectious Disease Forecasting: A Scoping Review
