@@ -25,7 +25,6 @@ ECON = {
 
 ECON_CYCLE = [ECON[c] for c in ["navy", "red", "cyan", "teal", "gold", "plum", "grey"]]
 
-
 def configure_matplotlib() -> None:
     mpl.rcParams.update(
         {
@@ -159,12 +158,10 @@ COUNTRY_PATTERNS = {
     "Sweden":       [r"sweden", r"uppsala"],
     "Peru":         [r"peru"],
     "Sierra Leone": [r"sierra leone", r"west africa"],
-    "Sierra Leone": ["sierra leone"],
     "Mexico": ["mexico"],
     "Chile": ["chile"],
     "Argentina": ["argentina"],
     "South Korea": ["south korea", "korea"],
-    "Australia": ["australia", "sydney", "melbourne"],
     "Canada": ["canada", "toronto", "ontario"],
     "Russia": ["russia", "moscow"],
     "South Africa": ["south africa"],
@@ -173,17 +170,14 @@ COUNTRY_PATTERNS = {
     "Ethiopia": ["ethiopia"],
     "Saudi Arabia": ["saudi arabia"],
     "Pakistan": ["pakistan"],
-    "Indonesia": ["indonesia", "jakarta"],
     "Thailand": ["thailand", "bangkok"],
     "Vietnam": ["vietnam"],
     "Philippines": ["philippines"],
     "Singapore": ["singapore"],
     "Malaysia": ["malaysia"],
     "Bangladesh": ["bangladesh", "dhaka"],
-    "Netherlands": ["netherlands", "holland"],
     "Belgium": ["belgium"],
     "Switzerland": ["switzerland", "swiss"],
-    "Sweden": ["sweden"],
     "Norway": ["norway"],
     "Denmark": ["denmark"],
     "Greece": ["greece"],
